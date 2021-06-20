@@ -22,7 +22,7 @@ OFFSET $2;
 
 -- name: UpdateAccount :one
 UPDATE accounts
-SET balance = $2
+SET balance = $2, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
