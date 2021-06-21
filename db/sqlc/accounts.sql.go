@@ -38,7 +38,8 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM accounts
+DELETE
+FROM accounts
 WHERE id = $1
 `
 
