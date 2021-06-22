@@ -16,7 +16,7 @@ func createTestTransfer(t *testing.T, fromAccountID, toAccountID int64) Transfer
 		Amount:        utils.RandomMoney(),
 	}
 
-	transfer, err := testQueries.CreateTransfer(context.Background(), arg)
+	transfer, err := testStore.CreateTransfer(context.Background(), arg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -25,7 +25,7 @@ func createTestTransfer(t *testing.T, fromAccountID, toAccountID int64) Transfer
 }
 
 func deleteTestTransfer(t *testing.T, id int64) {
-	err := testQueries.DeleteTransfer(context.Background(), id)
+	err := testStore.DeleteTransfer(context.Background(), id)
 	if err != nil {
 		t.Error(err)
 	}
@@ -41,7 +41,7 @@ func TestCreateTransfer(t *testing.T) {
 		Amount:        utils.RandomMoney(),
 	}
 
-	transfer, err := testQueries.CreateTransfer(context.Background(), arg)
+	transfer, err := testStore.CreateTransfer(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer)
 
@@ -66,7 +66,7 @@ func TestGetTransfer(t *testing.T) {
 	toAccount := createTestAccount(t)
 	transfer1 := createTestTransfer(t, fromAccount.ID, toAccount.ID)
 
-	transfer2, err := testQueries.GetTransfer(context.Background(), transfer1.ID)
+	transfer2, err := testStore.GetTransfer(context.Background(), transfer1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer2)
 
@@ -99,7 +99,7 @@ func TestListTransfers(t *testing.T) {
 		Offset:        0,
 	}
 
-	transfers, err := testQueries.ListTransfers(context.Background(), arg)
+	transfers, err := testStore.ListTransfers(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 	require.Len(t, transfers, 10)
@@ -121,10 +121,10 @@ func TestDeleteTransfer(t *testing.T) {
 	account2 := createTestAccount(t)
 	transfer1 := createTestTransfer(t, account1.ID, account2.ID)
 
-	err := testQueries.DeleteTransfer(context.Background(), transfer1.ID)
+	err := testStore.DeleteTransfer(context.Background(), transfer1.ID)
 	require.NoError(t, err)
 
-	transfer2, err := testQueries.GetTransfer(context.Background(), transfer1.ID)
+	transfer2, err := testStore.GetTransfer(context.Background(), transfer1.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, transfer2)

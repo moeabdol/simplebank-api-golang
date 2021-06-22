@@ -9,11 +9,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var testQueries *Queries
+var testStore *Store
 
 const (
 	dbDriver = "postgres"
-	dbSource = "postgres://postgres:postgres@localhost:5432/simplebank_db?sslmode=disable"
+	dbSource = "postgres://postgres:postgres@localhost:5432/simplebank_test_db?sslmode=disable"
 )
 
 func TestMain(m *testing.M) {
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot connect to database")
 	}
 
-	testQueries = New(conn)
+	testStore = NewStore(conn)
 
 	os.Exit(m.Run())
 }

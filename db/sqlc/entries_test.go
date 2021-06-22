@@ -15,7 +15,7 @@ func createTestEntry(t *testing.T, id int64) Entry {
 		Amount:    utils.RandomMoney(),
 	}
 
-	entry, err := testQueries.CreateEntry(context.Background(), arg)
+	entry, err := testStore.CreateEntry(context.Background(), arg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -24,7 +24,7 @@ func createTestEntry(t *testing.T, id int64) Entry {
 }
 
 func deleteTestEntry(t *testing.T, id int64) {
-	err := testQueries.DeleteEntry(context.Background(), id)
+	err := testStore.DeleteEntry(context.Background(), id)
 	if err != nil {
 		t.Error(err)
 	}
@@ -38,7 +38,7 @@ func TestCreateEntry(t *testing.T) {
 		Amount:    utils.RandomMoney(),
 	}
 
-	entry, err := testQueries.CreateEntry(context.Background(), arg)
+	entry, err := testStore.CreateEntry(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
 
@@ -56,7 +56,7 @@ func TestCreateEntry(t *testing.T) {
 func TestGetEntry(t *testing.T) {
 	account := createTestAccount(t)
 	entry1 := createTestEntry(t, account.ID)
-	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
+	entry2, err := testStore.GetEntry(context.Background(), entry1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry2)
 
@@ -74,10 +74,10 @@ func TestDeleteEntry(t *testing.T) {
 	account := createTestAccount(t)
 	entry1 := createTestEntry(t, account.ID)
 
-	err := testQueries.DeleteEntry(context.Background(), entry1.ID)
+	err := testStore.DeleteEntry(context.Background(), entry1.ID)
 	require.NoError(t, err)
 
-	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
+	entry2, err := testStore.GetEntry(context.Background(), entry1.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, entry2)
@@ -98,7 +98,7 @@ func TestListEntries(t *testing.T) {
 		Offset:    0,
 	}
 
-	entries, err := testQueries.ListEntries(context.Background(), arg)
+	entries, err := testStore.ListEntries(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, entries)
 	require.Len(t, entries, 10)

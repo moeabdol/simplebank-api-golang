@@ -17,7 +17,7 @@ func createTestAccount(t *testing.T) Account {
 		Currency: utils.RandomCurrency(),
 	}
 
-	account, err := testQueries.CreateAccount(context.Background(), arg)
+	account, err := testStore.CreateAccount(context.Background(), arg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,7 +26,7 @@ func createTestAccount(t *testing.T) Account {
 }
 
 func deleteTestAccount(t *testing.T, id int64) {
-	err := testQueries.DeleteAccount(context.Background(), id)
+	err := testStore.DeleteAccount(context.Background(), id)
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,7 +39,7 @@ func TestCreateAccount(t *testing.T) {
 		Currency: utils.RandomCurrency(),
 	}
 
-	account, err := testQueries.CreateAccount(context.Background(), arg)
+	account, err := testStore.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
@@ -56,7 +56,7 @@ func TestCreateAccount(t *testing.T) {
 
 func TestGetAccount(t *testing.T) {
 	account1 := createTestAccount(t)
-	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
+	account2, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
 
@@ -79,7 +79,7 @@ func TestUpdateAccount(t *testing.T) {
 		Balance: utils.RandomMoney(),
 	}
 
-	account2, err := testQueries.UpdateAccount(context.Background(), arg)
+	account2, err := testStore.UpdateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
 
@@ -97,10 +97,10 @@ func TestUpdateAccount(t *testing.T) {
 func TestDeleteAccount(t *testing.T) {
 	account1 := createTestAccount(t)
 
-	err := testQueries.DeleteAccount(context.Background(), account1.ID)
+	err := testStore.DeleteAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
-	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
+	account2, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, account2)
@@ -117,7 +117,7 @@ func TestListAccounts(t *testing.T) {
 		Offset: 0,
 	}
 
-	accounts, err := testQueries.ListAccounts(context.Background(), arg)
+	accounts, err := testStore.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, accounts)
 	require.Len(t, accounts, 10)
