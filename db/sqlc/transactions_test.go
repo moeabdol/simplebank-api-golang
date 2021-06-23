@@ -116,3 +116,74 @@ func TestTransferTx(t *testing.T) {
 	deleteTestAccount(t, account1.ID)
 	deleteTestAccount(t, account2.ID)
 }
+
+func TestTransferTxDeadlock(t *testing.T) {
+	account1 := createTestAccount(t)
+	account2 := createTestAccount(t)
+
+	// Run n cuncurrent transfers
+	n := 10
+	amount := int64(10)
+
+	errs := make(chan error)
+	results := make(chan TransferTxResult)
+
+	for i := 0; i < n; i++ {
+		fromAccountID := account1.ID
+		toAccountID := account2.ID
+
+		if i%2 == 1 {
+			fromAccountID = account2.ID
+			toAccountID = account1.ID
+		}
+
+		go func() {
+			result, err := testStore.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: fromAccountID,
+				ToAccountID:   toAccountID,
+				Amount:        amount,
+			})
+
+			errs <- err
+			results <- result
+		}()
+	}
+
+	// Check results
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+
+		result := <-results
+		require.NotEmpty(t, result)
+
+		// Check transer
+		transfer := result.Transfer
+		require.NotEmpty(t, transfer)
+
+		// Check entries
+		fromEntry := result.FromEntry
+		require.NotEmpty(t, fromEntry)
+
+		toEntry := result.ToEntry
+		require.NotEmpty(t, toEntry)
+
+		deleteTestTransfer(t, transfer.ID)
+		deleteTestEntry(t, fromEntry.ID)
+		deleteTestEntry(t, toEntry.ID)
+	}
+
+	// Check final updated balances
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAccount1)
+	require.Equal(t, account1.Balance, updatedAccount1.Balance)
+
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAccount2)
+	require.Equal(t, account2.Balance, updatedAccount2.Balance)
+
+	deleteTestAccount(t, account1.ID)
+	deleteTestAccount(t, account2.ID)
+}
