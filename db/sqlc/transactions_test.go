@@ -32,6 +32,7 @@ func TestTransferTx(t *testing.T) {
 	}
 
 	// Check results
+	existed := make(map[int]bool)
 	for i := 0; i < n; i++ {
 		err := <-errs
 		require.NoError(t, err)
@@ -75,12 +76,42 @@ func TestTransferTx(t *testing.T) {
 		_, err = testStore.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// TODO: Check accounts' balance
+		// Check accounts
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, fromAccount.ID, account1.ID)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, toAccount.ID, account2.ID)
+
+		// Check accounts' balance
+		diff1 := account1.Balance - fromAccount.Balance
+		diff2 := toAccount.Balance - account2.Balance
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+		require.True(t, diff1%amount == 0)
+
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= n)
+		require.NotContains(t, existed, k)
+		existed[k] = true
 
 		deleteTestTransfer(t, transfer.ID)
 		deleteTestEntry(t, fromEntry.ID)
 		deleteTestEntry(t, toEntry.ID)
 	}
+
+	// Check final updated balances
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAccount1)
+	require.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
+
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAccount2)
+	require.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
 
 	deleteTestAccount(t, account1.ID)
 	deleteTestAccount(t, account2.ID)
